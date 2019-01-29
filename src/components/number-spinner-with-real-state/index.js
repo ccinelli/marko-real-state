@@ -5,7 +5,10 @@
 //       require('lasso/node-require-no-op').enable('.css', '.less');
 require('./style.css');
 
-module.exports = require('marko-widgets').defineComponent({
+
+var realState = require('../../lib');
+ 
+module.exports = require('marko-widgets').defineComponent(realState({
     // Use the following template to render our UI component
     template: require('./template.marko'),
 
@@ -13,7 +16,7 @@ module.exports = require('marko-widgets').defineComponent({
     // the initial state of this widget. Over time
     // the state of the widget can change and it will
     // automatically rerender
-    getInitialState: function(input) {
+    getInitialRealState: function(input) {
         var value = input.value || 0;
 
         // Our widget will consist of a single property
@@ -46,4 +49,4 @@ module.exports = require('marko-widgets').defineComponent({
         // Change the internal state (triggers a rerender)
         this.setState('value', this.state.value + 1);
     }
-});
+}));

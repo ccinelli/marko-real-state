@@ -1,5 +1,7 @@
 {
     "dependencies": [
-        "require: ../../components/number-spinner"
+        "require: ../../components/number-spinner",
+        "require: ../../components/number-spinner-container",
+        "require: ../../components/number-spinner-with-real-state"
     ]
 }
