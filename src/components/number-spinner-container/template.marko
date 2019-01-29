@@ -1,13 +1,15 @@
 <div class=data.className w-bind>
-    Father:
+    Parent:
     <div>
         <button type="button" w-onClick="handleDecrementClick">-</button>
         <input type="text" value=data.value size="2"/>
         <button type="button" w-onClick="handleIncrementClick">+</button>
     </div>
-    Normal child: 
-    <number-spinner />
-    Child with realState: 
-    <number-spinner-with-real-state />
+    <div class="children">
+        Normal child: 
+        <number-spinner />
+        Child with realState: 
+        <number-spinner-with-real-state />
+    </div>
     
 </div>

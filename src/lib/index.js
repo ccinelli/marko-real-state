@@ -15,6 +15,12 @@ module.exports = function realState(def) {
         // So we save the initial real state in `that.state.__initialRealState`
         // later we move the state in `this.__realState`
 
+        // getInitialRealState is called only once and it will
+        // override variables declared in getInitialState
+        // What this function returns  will persist when
+        // the parent state is updated and the component has to re-render
+        // You can keep using this.setState as usual to update the state
+
         getInitialState(input) {
             const state = originalGetInitialState && originalGetInitialState.apply(this, arguments) || {};
 

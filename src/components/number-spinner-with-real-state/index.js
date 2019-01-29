@@ -12,10 +12,11 @@ module.exports = require('marko-widgets').defineComponent(realState({
     // Use the following template to render our UI component
     template: require('./template.marko'),
 
-    // Returns an object with properties that represent
-    // the initial state of this widget. Over time
-    // the state of the widget can change and it will
-    // automatically rerender
+    // This is called only once and it will
+    // override variables declared in getInitialState
+    // What this function returns  will persist when
+    // the parent state is updated and the component has to re-render
+    // You can keep using this.setState as usual to update the state
     getInitialRealState: function(input) {
         var value = input.value || 0;
 
