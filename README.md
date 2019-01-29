@@ -1,51 +1,53 @@
-Marko Widgets with Lasso.js
+Marko (v3) Real State
 ===========================
 
-This sample app demonstrates how to build a UI component using [Marko Widgets](https://github.com/marko-js/marko-widgets) that uses [Lasso.js](https://github.com/lasso-js/lasso) to bundle up the required JavaScript and CSS code.
+This module lets you to create components with "real states" that persist during parents re-renders
+
+# Why
+Marko 3 has an unusual way to dal with states. When a parent re-render the `getInitialState` function of the child component is called in the children and they lose their state.
+
+This let you persist the state across re-renders.
 
 # Installation
+```
+npm install marko-real-state
+```
+Or 
+```
+yarn add marko-real-state
+```
+
+# Use
 
 ```
-git clone https://github.com/marko-js-samples/marko-widgets-lasso.git
-cd marko-widgets-lasso
-npm install
+const realState = require('../../lib');
+ 
+// Notice the `defineComponent(` *`realState`* `({`
+module.exports = require('marko-widgets').defineComponent(realState({
+    // This is called only once and it will
+    // override variable declared in getInitialState
+    // What is return in this function will persist when
+    // the parent state is updated and the component has to re-render
+    // You can keep using setState as usual to update the state
+    
+    getInitialRealState: function(input) {
+        var value = input.value || 0;
+        return {
+            value: value
+        };
+    },
+    ...
 ```
 
-# Running
 
-You can choose to either run this application as a Express-based server or to simply build the static HTML, JS and CSS files.
-
-## Option 1) Starting a Server
+# Sample app
 
 ```
+git clone https://github.com/ccinelli/marko-real-state.git
+cd marko-real-state
 node server.js
 ```
 
-Then visit: http://localhost:8080/
+# TODO
 
-You can also use the [browser-refresh](https://github.com/patrick-steele-idem/browser-refresh) process launcher to automatically refresh pages any time a file changes as shown below:
-
-```
-npm install browser-refresh --global
-browser-refresh server.js
-```
-
-To start in production mode (minification, bundling, fingerprinting, etc.) simply use the following command:
-
-```
-NODE_ENV=production node server.js
-```
-
-## Option 2) Build files only
-
-```
-node build.js
-```
-
-The generated HTML, JS and CSS files will be placed in the `build` directory in the root of the project.
-
-To build static files in production mode (minification, bundling, fingerprinting, etc.) simply use the following command:
-
-```
-NODE_ENV=production node build.js
-```
+- Tests 

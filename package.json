@@ -1,14 +1,31 @@
 {
-  "name": "marko-widgets-lasso",
+  "name": "marko-real-state",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "./lib/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Chris Cinelli<ccinelli@ebay.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ccinelli/marko-real-state"
+  },
+  "keywords": [
+    "marko3",
+    "marko",
+    "markov3",
+    "v3",
+    "real",
+    "state",
+    "realstate"
+  ],
+  "bugs": {
+    "url": "https://github.com/ccinelli/marko-real-state/issues"
+  },
   "license": "ISC",
-  "dependencies": {
+
+  "devDependencies": {
     "async": "^1.4.2",
     "browser-refresh-taglib": "^1.0.3",
     "express": "^4.13.3",
