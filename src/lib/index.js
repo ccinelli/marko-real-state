@@ -2,20 +2,16 @@ module.exports = function realState(def) {
     let originalSetState;
     let originalGetInitialState = def.getInitialState;
     let originalInit = def.init;
-    let that;
-
-
+    
     let counter = 1;
     return Object.assign(def, {
         init() {
-            that = this;
             originalSetState = this.setState;
             this.setState = this.__setRealState; 
-            if (that.state.__initialRealState) {
-                realState = that.__realState = that.state.__initialRealState;
-                console.log('INIT: that.state.__initialRealState moving', that.counter, realState);
-                delete that.state.__initialRealState;
-            }
+
+            const rootStorage = this.el;
+            rootStorage.__realState = this.state.__realState;
+
             originalInit && originalInit.apply(this, arguments);
         },
 
@@ -29,34 +25,28 @@ module.exports = function realState(def) {
         // the parent state is updated and the component has to re-render
         // You can keep using this.setState as usual to update the state
 
-        getInitialState(input) {
+        getInitialState(input, out) {
             debugger;
+            const rootStorage = out.attributes && out.attributes.__rerenderEl || {};
             const state = originalGetInitialState && originalGetInitialState.apply(this, arguments) || {};
 
             let realState;
            
-            if (!that) { // We did not go through the init yet
-                realState = state.__initialRealState = def.getInitialRealState && def.getInitialRealState.apply(this, arguments) || {};
-                console.log('No that', realState);
+            if (!rootStorage.__realState) { // We did not go through the init yet
+                realState = state.__realState = def.getInitialRealState && def.getInitialRealState.apply(this, arguments) || {};
+                console.log('getInitialState: No lastState', realState);
             } else {
-                if(!that.counter) that.counter = counter++;
-                if (!that.__realState) {
-                    if (that.state.__initialRealState) {
-                        realState = that.__realState = that.state.__initialRealState;
-                        console.log('that.state.__initialRealState moving', that.counter, realState);
-                        delete that.state.__initialRealState;
-                    } else {
-                        console.log('!!!!!!!!  --------->  This should not happen', that.counter);
-                        realState = that.__realState = def.getInitialRealState && def.getInitialRealState.apply(this, arguments) || {};
-                    }
+                //if(!that.counter) that.counter = counter++;
+                if (!rootStorage.__realState) {
+                    console.log('getInitialState 1!!!!!!!!  --------->  This should not happen');
                 } else {
-                    realState = that.__realState;
-                    console.log('that.__realState', that && that.counter, realState);
+                    realState = rootStorage.__realState;
+                    console.log('getInitialState', realState);
                 }
             }
 
             // The core of this module... keep the real state across
-            console.log('getInitialState', that && that.counter, realState);
+            console.log('getInitialState',  realState);
             for (k in realState) {
                 state[k] = realState[k];
             }
@@ -66,6 +56,8 @@ module.exports = function realState(def) {
 
         // Override for the setState make sure we capture changes for variable in realState;
         __setRealState(name, value) {
+            const rootStorage = this.el;
+
             if (typeof name === 'object') {
                 // Merge in the new state with the old state
                 var newState = name;
@@ -78,12 +70,10 @@ module.exports = function realState(def) {
             }
    
             originalSetState.call(this, name, value);
-
-            if (that && this !== that) console.error(new Error('THIS IS NOT THAT!'));
  
             // If this is part of the real state update it
-            const realState = this.state.__initialRealState || this.__realState;
-            console.log('__setRealState', that && that.counter, realState, 'name', name, 'value', value);
+            const realState = rootStorage.__realState;
+            console.log('__setRealState', realState, 'name', name, 'value', value);
             if (realState.hasOwnProperty(name)) {
                 realState[name] = value;
             }
