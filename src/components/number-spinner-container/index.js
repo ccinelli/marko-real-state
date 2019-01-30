@@ -26,7 +26,7 @@ module.exports = require('marko-widgets').defineComponent({
     getTemplateData: function(state, input) {
         var value = state.value;
 
-        var className = 'number-spinner';
+        var className = 'number-spinner container';
 
         if (value < 0) {
             className += ' negative';
