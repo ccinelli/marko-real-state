@@ -1,14 +1,22 @@
 module.exports = function realState(def) {
     let originalSetState;
     let originalGetInitialState = def.getInitialState;
+    let originalInit = def.init;
     let that;
-    let _realState;
 
+
+    let counter = 1;
     return Object.assign(def, {
         init() {
             that = this;
             originalSetState = this.setState;
             this.setState = this.__setRealState; 
+            if (that.state.__initialRealState) {
+                realState = that.__realState = that.state.__initialRealState;
+                console.log('INIT: that.state.__initialRealState moving', that.counter, realState);
+                delete that.state.__initialRealState;
+            }
+            originalInit && originalInit.apply(this, arguments);
         },
 
         // The getInitialState is call before init() and there is no reference to `this`
@@ -22,27 +30,33 @@ module.exports = function realState(def) {
         // You can keep using this.setState as usual to update the state
 
         getInitialState(input) {
+            debugger;
             const state = originalGetInitialState && originalGetInitialState.apply(this, arguments) || {};
 
             let realState;
            
             if (!that) { // We did not go through the init yet
                 realState = state.__initialRealState = def.getInitialRealState && def.getInitialRealState.apply(this, arguments) || {};
+                console.log('No that', realState);
             } else {
+                if(!that.counter) that.counter = counter++;
                 if (!that.__realState) {
                     if (that.state.__initialRealState) {
                         realState = that.__realState = that.state.__initialRealState;
+                        console.log('that.state.__initialRealState moving', that.counter, realState);
                         delete that.state.__initialRealState;
                     } else {
-                        console.log('!!!!!!!!  --------->  This should not happen');
+                        console.log('!!!!!!!!  --------->  This should not happen', that.counter);
                         realState = that.__realState = def.getInitialRealState && def.getInitialRealState.apply(this, arguments) || {};
                     }
                 } else {
                     realState = that.__realState;
+                    console.log('that.__realState', that && that.counter, realState);
                 }
             }
 
             // The core of this module... keep the real state across
+            console.log('getInitialState', that && that.counter, realState);
             for (k in realState) {
                 state[k] = realState[k];
             }
@@ -64,9 +78,12 @@ module.exports = function realState(def) {
             }
    
             originalSetState.call(this, name, value);
+
+            if (that && this !== that) console.error(new Error('THIS IS NOT THAT!'));
  
             // If this is part of the real state update it
             const realState = this.state.__initialRealState || this.__realState;
+            console.log('__setRealState', that && that.counter, realState, 'name', name, 'value', value);
             if (realState.hasOwnProperty(name)) {
                 realState[name] = value;
             }

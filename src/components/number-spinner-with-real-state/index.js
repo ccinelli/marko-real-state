@@ -17,8 +17,13 @@ module.exports = require('marko-widgets').defineComponent(realState({
     // What this function returns  will persist when
     // the parent state is updated and the component has to re-render
     // You can keep using this.setState as usual to update the state
-    getInitialRealState: function(input) {
+    getInitialRealState: function(input, out) {
         var value = input.value || 0;
+
+        console.log("OUT", out);
+        //var state = realState(out.attributes.__renderedEl.state, {
+
+        //});
 
         // Our widget will consist of a single property
         // in the state and that will be the current
