@@ -1,11 +1,18 @@
 const defineRenderer = require('./defineRenderer');
 
+let isMarkov3 = true; 
+try {
+    const majorVersion = require('marko/package.json').version.split('.')[0];
+    if(!isNaN(majorVersion)) isMarkov3 = majorVersion == 3
+} catch(e) {
+    // Nothing to do
+}
+
 module.exports = function realState(def) {
 
     // We start with the original from the def. 
     // Below in "init" this will be replace with a version bound to this
     let originalGetInitialState = def.getInitialState;
-    let originalRenderer; // Assigned below after calling own custom defineRenderer
     let originalInit = def.init;
 
     let defOverride = {
@@ -80,7 +87,7 @@ module.exports = function realState(def) {
     defOverride = Object.assign(def, defOverride);
     
     // Create a render
-    if (!defOverride.renderer) defOverride.renderer  = def.renderer || defineRenderer(defOverride);
+    if (isMarkov3 && !defOverride.renderer) defOverride.renderer = def.renderer || defineRenderer(defOverride);
 
     return defOverride;
 }
