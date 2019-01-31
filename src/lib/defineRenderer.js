@@ -1,41 +1,35 @@
 /*
- * Copyright 2011 eBay Software Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+
+This is added from marko-widget 6.6.6 lib/defineRenderer.js
+The code is almost the same, except we stripped the part 
+that is going to be used in the original file and
+def.getInitialState is always retrieve from def 
+instead of being cached locally. In this way we 
+can replace it with a version where this is bound
+to the widget
+
+You can see the difference with the original with:  
+
+*/
 
 var marko = require('marko');
-var raptorRenderer = require('raptor-renderer');
 var extend = require('raptor-util/extend');
 
 module.exports = function defineRenderer(def) {
     var template = def.template;
     var getInitialProps = def.getInitialProps;
     var getTemplateData = def.getTemplateData;
-    var getInitialState = def.getInitialState;
     var getWidgetConfig = def.getWidgetConfig;
     var getInitialBody = def.getInitialBody;
     var extendWidget = def.extendWidget;
-    var renderer = def.renderer;
 
     var loadedTemplate;
 
 
-    if (!renderer) {
         // Create a renderer function that takes care of translating
         // the input properties to a view state. Also, this renderer
         // takes care of re-using existing widgets.
-        renderer = function renderer(input, out) {
+        return function renderer(input, out) {
             var global = out.global;
 
             var newProps = input;
@@ -53,7 +47,7 @@ module.exports = function defineRenderer(def) {
 
             var widgetState;
 
-            if (getInitialState) {
+            if (def.getInitialState) {
                 // This is a state-ful widget. If this is a rerender then the "input"
                 // will be the new state. If we have state then we should use the input
                 // as the widget state and skip the steps of converting the input
@@ -93,10 +87,10 @@ module.exports = function defineRenderer(def) {
                     newProps = getInitialProps(newProps, out) || {};
                 }
 
-                if (getInitialState) {
+                if (def.getInitialState) {
                     // This optional method is used to derive the widget state
                     // from the input properties
-                    widgetState = getInitialState(newProps, out);
+                    widgetState = def.getInitialState(newProps, out);
                 }
             }
 
@@ -156,23 +150,4 @@ module.exports = function defineRenderer(def) {
             // data that we constructed
             loadedTemplate.render(templateData, out);
         };
-    }
-
-    renderer.render = function(data, callback) {
-        if(!callback) {
-            require('./deprecate').warn(
-                'Calling `render` synchronously is deprecated. '+
-                'Use `renderSync` instead.'
-            );
-            return raptorRenderer.render(renderer, data);
-        }
-
-        raptorRenderer.render(renderer, data, callback);
-    };
-
-    renderer.renderSync = function(data) {
-        return raptorRenderer.render(renderer, data);
-    };
-
-    return renderer;
 };

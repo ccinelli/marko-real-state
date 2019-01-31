@@ -1,17 +1,26 @@
+const defineRenderer = require('./defineRenderer');
+
 module.exports = function realState(def) {
-    let originalSetState;
+
+    // We start with the original from the def. 
+    // Below in "init" this will be replace with a version bound to this
     let originalGetInitialState = def.getInitialState;
+    let originalRenderer; // Assigned below after calling own custom defineRenderer
     let originalInit = def.init;
-    
-    let counter = 1;
-    return Object.assign(def, {
+
+    let defOverride = {
         init() {
-            originalSetState = this.setState;
-            this.setState = this.__setRealState; 
-
-            const rootStorage = this.el;
-            rootStorage.__realState = this.state.__realState;
-
+            if (!this.__originalSetState){
+                this.__originalSetState = this.setState;
+                this.setState = this.__setRealState;
+                // NOTE: This is the most important part of the file!
+                defOverride.getInitialState = defOverride.getInitialState.bind(this);
+            }
+            if (this.state.__initialRealState) {
+                this.__realState = this.state.__initialRealState;
+                delete this.state.__initialRealState;
+            }
+            // Call the init if exists 
             originalInit && originalInit.apply(this, arguments);
         },
 
@@ -25,28 +34,19 @@ module.exports = function realState(def) {
         // the parent state is updated and the component has to re-render
         // You can keep using this.setState as usual to update the state
 
-        getInitialState(input, out) {
-            debugger;
-            const rootStorage = out.attributes && out.attributes.__rerenderEl || {};
+        getInitialState(input) {
             const state = originalGetInitialState && originalGetInitialState.apply(this, arguments) || {};
 
             let realState;
            
-            if (!rootStorage.__realState) { // We did not go through the init yet
-                realState = state.__realState = def.getInitialRealState && def.getInitialRealState.apply(this, arguments) || {};
-                console.log('getInitialState: No lastState', realState);
+            // Unless we have a 'this' that point to the widget this is not going to work.
+            if (!this || !this.__realState) { // We did not go through the init yet
+                realState = state.__initialRealState = state.__initialRealState || def.getInitialRealState && def.getInitialRealState.apply(this, arguments) || {};
             } else {
-                //if(!that.counter) that.counter = counter++;
-                if (!rootStorage.__realState) {
-                    console.log('getInitialState 1!!!!!!!!  --------->  This should not happen');
-                } else {
-                    realState = rootStorage.__realState;
-                    console.log('getInitialState', realState);
-                }
+                realState = this.__realState;
             }
 
-            // The core of this module... keep the real state across
-            console.log('getInitialState',  realState);
+            // The core of this module... keep the real state across re-renderings
             for (k in realState) {
                 state[k] = realState[k];
             }
@@ -56,8 +56,6 @@ module.exports = function realState(def) {
 
         // Override for the setState make sure we capture changes for variable in realState;
         __setRealState(name, value) {
-            const rootStorage = this.el;
-
             if (typeof name === 'object') {
                 // Merge in the new state with the old state
                 var newState = name;
@@ -69,14 +67,20 @@ module.exports = function realState(def) {
                 return;
             }
    
-            originalSetState.call(this, name, value);
+            this.__originalSetState.call(this, name, value);
  
             // If this is part of the real state update it
-            const realState = rootStorage.__realState;
-            console.log('__setRealState', realState, 'name', name, 'value', value);
+            const realState = this.state.__initialRealState || this.__realState;
             if (realState.hasOwnProperty(name)) {
                 realState[name] = value;
             }
         },
-    });
+    }
+    // Combine user definition and ours
+    defOverride = Object.assign(def, defOverride);
+    
+    // Create a render
+    if (!defOverride.renderer) defOverride.renderer  = def.renderer || defineRenderer(defOverride);
+
+    return defOverride;
 }
